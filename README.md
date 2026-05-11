@@ -59,6 +59,23 @@ O `requirements.txt` é um arquivo de texto simples que lista todas as dependên
 
 #### Como funciona?
 
+- **Criação Dinâmica:** O script lê os metadados dos CSVs e gera automaticamente os Schemas (`raw`, `trusted`) no PostgreSQL.
+- **Data Typing:** Conversão automática de tipos de dados via Pandas/SQLAlchemy para garantir a integridade numérica.
+- **Pipeline:** O fluxo garante que a estrutura do banco esteja pronta antes da inserção, ideal para ambientes de CI/CD.
+
+---
+
+## 📊 Insights do Portfólio (SQL)
+
+Para validar o sucesso da ingestão, incluí uma camada de análises que podem ser encontradas na pasta [`/sql`](./sql/). 
+
+**Destaque:** Analiso a média de gastos por parlamentar, total de gastos por partido e o cruzamento de gastos por nível de escolaridade, demonstrando o uso de:
+- **Joins** entre tabelas biográficas e financeiras.
+- **Casts de Tipo** para precisão monetária.
+- **Agregações** para extração de métricas de performance parlamentar.
+- **CTE:** Para organização de consultas e melhor legibilidade do código.
+- **Tipagem Dinâmica:** Uso de Casts para precisão em cálculos financeiros.
+
 Cada linha do `requirements.txt` contém:
 
 ```text
