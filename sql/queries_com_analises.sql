@@ -20,7 +20,10 @@ order by
     gasto_total desc;
 
 
+
 -- 3: Total de gastos por partido
+-- Nota de negócio: Esta query calcula a média com base nos parlamentares ativos na tabela de despesas.
+-- Caso existam deputados com gasto zero no período, eles não afetarão o denominador.
 with 
 	d1 as(
 select
@@ -47,3 +50,40 @@ from deputados_trusted.deputados_trusted dt
 inner join d2 d2 on dt.id = d2.id
 inner join d1 d1 on dt.sigla_partido = d1.partido
 group by 1,2;
+
+
+-- Insight: Média de gastos reais por parlamentar agrupado por partido
+with cte_total_deputados as (
+    -- Etapa 1: Conta quantos deputados únicos cada partido realmente tem
+    select 
+        sigla_partido,
+        count(distinct id) as qtd_parlamentares
+    from 
+        deputados_trusted.deputados_trusted
+    group by 
+        sigla_partido
+),
+gastos_partido as (
+    -- Etapa 2: Soma o gasto total acumulado de cada partido
+    select 
+        d.sigla_partido,
+        sum(des.valor_liquido) as gasto_total_partido
+    from 
+        deputados_trusted.deputados_despesas_trusted des
+    join 
+        deputados_trusted.deputados_trusted d on des.deputado_id = d.id
+    group by 
+        d.sigla_partido
+)
+-- Etapa Final: Cruza os totais e calcula a média real por cabeça (evitando o viés de linhas/notas)
+select 
+    g.sigla_partido,
+    t.qtd_parlamentares,
+    round(g.gasto_total_partido::numeric, 2) as gasto_total,
+    round((g.gasto_total_partido / t.qtd_parlamentares)::numeric, 2) as media_por_parlamentar
+from 
+    gastos_partido g
+join 
+    cte_total_deputados t on g.sigla_partido = t.sigla_partido
+order by 
+    media_por_parlamentar desc;
