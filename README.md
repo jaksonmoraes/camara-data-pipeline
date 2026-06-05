@@ -1,6 +1,6 @@
 # Projeto Educacional de Ingestão de Dados da Câmara dos Deputados Federais
 
-Este projeto é uma base educativa em Python para aprender como extrair dados de uma API, gerar arquivos CSV e carregar esses dados em um banco PostgreSQL. O foco é ensino de programação, dados e uso de Git, com exemplos práticos e fáceis de entender.
+Este projeto é uma base educativa em Python para aprender uma forma de extrair dados de uma API, gerar arquivos CSV e carregar esses dados em um banco PostgreSQL, com exemplos práticos e fáceis de entender.
 
 
 ## Estrutura do projeto
@@ -20,7 +20,7 @@ Este repositório serve para:
 1. Aprender a trabalhar com APIs em Python.
 2. Entender como gerar e organizar arquivos CSV.
 3. Praticar pipeline de ingestão de dados com PostgreSQL.
-4. Usar Git corretamente, ignorando arquivos temporários e ambientes locais.
+
 
 ## Dependências principais
 
@@ -33,14 +33,25 @@ Os principais pacotes Python usados neste projeto são:
 
 ## Configuração inicial
 
-### Passo 1: Criar e ativar o ambiente virtual
+### Passo 1: Criar o arquivo `.env`
+
+**ANTES de qualquer coisa**, você precisa criar um arquivo `.env` na raiz do projeto com as credenciais do PostgreSQL:
+Depois, edite o `.env` e altere as credenciais para valores seguros:
+
+```text
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=sua_senha_segura_aqui
+POSTGRES_DB=estudos
+```
+
+### Passo 2: Criar e ativar o ambiente virtual
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 ```
 
-### Passo 2: Instalar dependências com `requirements.txt`
+### Passo 3: Instalar dependências com `requirements.txt`
 
 Este projeto já possui um arquivo `requirements.txt` que lista todas as bibliotecas necessárias com suas versões exatas.
 
@@ -65,16 +76,6 @@ O `requirements.txt` é um arquivo de texto simples que lista todas as dependên
 
 ---
 
-## 📊 Insights do Portfólio (SQL)
-
-Para validar o sucesso da ingestão, incluí uma camada de análises que podem ser encontradas na pasta [`/sql`](./sql/). 
-
-**Destaque:** Analiso a média de gastos por parlamentar, total de gastos por partido e o cruzamento de gastos por nível de escolaridade, demonstrando o uso de:
-- **Joins** entre tabelas biográficas e financeiras.
-- **Casts de Tipo** para precisão monetária.
-- **Agregações** para extração de métricas de performance parlamentar.
-- **CTE:** Para organização de consultas e melhor legibilidade do código.
-- **Tipagem Dinâmica:** Uso de Casts para precisão em cálculos financeiros.
 
 Cada linha do `requirements.txt` contém:
 
@@ -85,11 +86,13 @@ nome_do_pacote==versão
 Por exemplo:
 
 ```text
-pandas==2.0.3           # ferramenta para trabalhar com dados (tabelas)
-requests==2.31.0        # ferramenta para fazer requisições HTTP (chamar APIs)
-sqlalchemy==2.0.20      # ferramenta para trabalhar com bancos de dados
-psycopg2-binary==2.9.7  # ferramenta para conectar em PostgreSQL
+pandas>=2.2.0           # ferramenta para trabalhar com dados (tabelas)
+requests>=2.32.0        # ferramenta para fazer requisições HTTP (chamar APIs)
+sqlalchemy>=2.0.23      # ferramenta para trabalhar com bancos de dados
+psycopg2-binary>=2.9.9  # ferramenta para conectar em PostgreSQL
 ```
+
+> 📌 **Nota**: As versões usam `>=` (igual ou maior), permitindo atualizações de bug fixes automaticamente enquanto mantém compatibilidade.
 
 Se preferir instalar manualmente (sem `requirements.txt`):
 
@@ -97,9 +100,9 @@ Se preferir instalar manualmente (sem `requirements.txt`):
 pip install pandas requests sqlalchemy psycopg2-binary
 ```
 
-Mas não recomendamos! O `requirements.txt` garante que todos usem as mesmas versões.
+Mas não recomendo! O `requirements.txt` garante que todos usem as mesmas versões.
 
-### Passo 3: Iniciar os serviços do Docker
+### Passo 4: Iniciar os serviços do Docker
 
 Se você usar Docker (recomendado para ter PostgreSQL rodando localmente):
 
@@ -113,21 +116,15 @@ Para parar os serviços:
 docker compose down
 ```
 
-### Passo 4: Verificar o arquivo `.env`
+### Passo 5: Verificar a conexão
 
-Este arquivo contém as credenciais do PostgreSQL:
+Após iniciar o Docker, aguarde alguns segundos para o PostgreSQL estar pronto. Você pode verificar o status com:
 
-```text
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=123
-POSTGRES_DB=estudos
+```powershell
+docker compose ps
 ```
 
-> ⚠️ **Importante**: Mantenha o `.env` privado. Ele já está listado no `.gitignore` e não será enviado ao GitHub.
-
-## Fluxo de execução
-
-### 1. Extrair dados da API
+### 6. Extrair dados da API
 
 Execute o script que consome a API da Câmara:
 
@@ -171,6 +168,18 @@ Esse script lê os arquivos em `datasets/` e grava os dados em três camadas no 
 - Cria schemas PostgreSQL se não existirem.
 - Insere dados em tabelas separadas para raw, trusted e analytics.
 
+## 📊 Insights do Portfólio (SQL)
+
+Para validar o sucesso da ingestão, incluí uma camada de análises que podem ser encontradas na pasta [`/sql`](./sql/). 
+
+**Destaque:** Analiso a média de gastos por parlamentar, total de gastos por partido e o cruzamento de gastos por nível de escolaridade, demonstrando o uso de:
+- **Joins** entre tabelas biográficas e financeiras.
+- **Casts de Tipo** para precisão monetária.
+- **Agregações** para extração de métricas de performance parlamentar.
+- **CTE:** Para organização de consultas e melhor legibilidade do código.
+- **Tipagem Dinâmica:** Uso de Casts para precisão em cálculos financeiros.
+
+
 ## Boas práticas de Git
 
 Este projeto inclui um `.gitignore` para evitar envio de arquivos que não devem ficar no repositório:
@@ -180,24 +189,17 @@ Este projeto inclui um `.gitignore` para evitar envio de arquivos que não devem
 - caches Python (`__pycache__/`)
 - arquivos gerados (`datasets/*.csv`)
 
-## Como contribuir / estudar
+## 🔐 Boas Práticas de Segurança
 
-**Primeiros passos quando clonar o repositório:**
+**Checklist antes de fazer commit:**
 
-1. Crie o ambiente virtual: `python -m venv .venv`
-2. Ative-o: `.\.venv\Scripts\Activate.ps1`
-3. Instale as dependências: `pip install -r requirements.txt`
-4. Inicie o Docker: `docker compose up -d`
-
-**Agora estude o código:**
-
-- Comece com `src/ingestao/consome_api_camara.py` para entender como funciona a extração de dados de uma API.
-- Em seguida, estude `src/ingestao/ingestao.py` para ver como os dados são carregados no banco de dados.
-- Use `docker compose ps` para verificar se o PostgreSQL e o pgAdmin estão rodando.
-- Experimente modificar os scripts e executar novamente para ver os resultados.
+- [x] Arquivo `.env` existe e não será commitado (está em `.gitignore`)
+- [x] Nenhuma senha ou chave de API está visível no código Python
+- [x] Os arquivos `ingestao.py` e `connection.py` usam variáveis de ambiente (não hardcoded)
+- [x] O `docker-compose.yml` não expõe credenciais sensíveis (usar `.env`)
+- [x] Nenhum arquivo CSV com dados pessoais será commitado
 
 ## Notas finais
-
 - O projeto foi pensado para aprendizado, então os comentários e nomes foram mantidos simples.
 - O README usa caminhos relativos e não depende do nome da pasta raiz.
 - O arquivo `requirements.txt` garante que todos os usuários tenham as mesmas versões dos pacotes Python.

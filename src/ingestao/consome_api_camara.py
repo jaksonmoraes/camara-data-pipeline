@@ -3,7 +3,6 @@ import pandas as pd
 import time
 from pathlib import Path
 
-# base do projeto
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
@@ -122,7 +121,7 @@ def load_despesas_deputados(df_deputados, max_deputados=None):
                     'data_documento': desp.get('dataDocumento'),
                     'url_documento': desp.get('urlDocumento')
                 })
-        # Este if faz com que a cada 20 deputados processados, seja exibida uma mensagem de progresso no console, indicando quantos deputados já tiveram suas despesas processadas em relação ao total. Isso é útil para acompanhar o andamento do processo, especialmente quando se está lidando com um grande número de deputados.
+        
         if (index + 1) % 20 == 0:
             print(f"   -> Processando despesas do deputado {index + 1} de {total}...")
 

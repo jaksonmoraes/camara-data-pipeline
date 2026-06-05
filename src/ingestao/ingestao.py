@@ -1,11 +1,15 @@
 import pandas as pd
-from sqlalchemy import create_engine, text
+from sqlalchemy import text
 from pathlib import Path
 
-# conexão com banco
-engine = create_engine("postgresql://postgres:123@localhost:5432/estudos")
+# Import relativo para evitar problemas de módulo quando executado como script
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
-# base do projeto
+from src.db.connection import get_engine
+
+engine = get_engine()
+
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
@@ -19,7 +23,6 @@ def carregar_e_processar(nome_arquivo, dominio, nome_tabela):
 
     print(f"\n📂 Processando: {nome_arquivo}")
 
-    # Tentar diferentes encodings e delimitadores
     encodings = ['utf-8', 'latin-1', 'iso-8859-1', 'cp1252']
     separators = [',', ';']
     df = None
@@ -38,7 +41,7 @@ def carregar_e_processar(nome_arquivo, dominio, nome_tabela):
     if df is None:
         raise ValueError(f"Não foi possível ler o arquivo {csv_path} com nenhuma combinação de encoding e delimitador")
 
-    # certificar que schemas existem
+
     criar_schema(f"{dominio}_raw")
     criar_schema(f"{dominio}_trusted")
     criar_schema(f"{dominio}_analytics")
@@ -46,7 +49,6 @@ def carregar_e_processar(nome_arquivo, dominio, nome_tabela):
     # =========================
     # 1. RAW (dados brutos)
     # =========================
-    # Aqui o df.to_sql() é para salvar o df original (raw) na camada raw do banco de dados, usando o nome da tabela e domínio definidos
     df.to_sql(
         f"{nome_tabela}_raw",
         engine,
@@ -60,7 +62,6 @@ def carregar_e_processar(nome_arquivo, dominio, nome_tabela):
     # 2. TRUSTED (tratado)
     # =========================
     # Aqui é feito uma limpeza básica: padronização de nomes de colunas (lowercase, sem espaços, etc)
-    # O df.copy() é para evitar alterações no meu df original (raw) que pode ser necessário para outras transformações ou análises futuras
     df_tratado = df.copy()
 
     df_tratado.columns = (
@@ -69,7 +70,7 @@ def carregar_e_processar(nome_arquivo, dominio, nome_tabela):
         .str.lower()
         .str.replace(r"[^\w]+", "_", regex=True)
     )
-    # Aqui o df.tratado.tosql() é para salvar o df tratado na camada trusted do banco de dados, usando o nome da tabela e domínio definidos
+
     df_tratado.to_sql(
         f"{nome_tabela}_trusted",
         engine,
@@ -84,10 +85,8 @@ def carregar_e_processar(nome_arquivo, dominio, nome_tabela):
     # =========================
     df_analise = df_tratado.copy()
 
-    # O dropna(how="all") é para remover linhas que estão completamente vazias, ou seja, todas as colunas têm valores nulos. Isso ajuda a limpar o dataset e evitar análises com dados irrelevantes ou incompletos.
     df_analise = df_analise.dropna(how="all")
     
-    # Aqui o df_analise.tosql() é para salvar o df tratado e limpo na camada analytics do banco de dados, usando o nome da tabela e domínio definidos. O if_exists="replace" é para garantir que, se a tabela já existir, ela seja substituída pelos novos dados processados.
     df_analise.to_sql(
         f"{nome_tabela}_analytics",
         engine,
@@ -98,7 +97,7 @@ def carregar_e_processar(nome_arquivo, dominio, nome_tabela):
     print(f"✔ ANALYTICS: {dominio}_analytics.{nome_tabela}_analytics")
 
 
-# 🔥 LISTA DE DATASETS
+# LISTA DE DATASETS
 datasets = [
     (
         "deputados.csv",
@@ -117,7 +116,6 @@ datasets = [
     )
 ]
 
-# 🔁 LOOP DE EXECUÇÃO
 for nome_arquivo, dominio, nome_tabela in datasets:
     carregar_e_processar(nome_arquivo, dominio, nome_tabela)
 
