@@ -2,7 +2,6 @@ import pandas as pd
 from sqlalchemy import text
 from pathlib import Path
 
-# Import relativo para evitar problemas de módulo quando executado como script
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
@@ -16,6 +15,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 def criar_schema(schema_name):
     with engine.begin() as conn:
         conn.execute(text(f"CREATE SCHEMA IF NOT EXISTS {schema_name}"))
+
+
+def remover_tabela_se_existir(schema_name, table_name):
+    with engine.begin() as conn:
+        conn.execute(text(f'DROP TABLE IF EXISTS "{schema_name}"."{table_name}" CASCADE'))
 
 
 def carregar_e_processar(nome_arquivo, dominio, nome_tabela):
@@ -49,6 +53,7 @@ def carregar_e_processar(nome_arquivo, dominio, nome_tabela):
     # =========================
     # 1. RAW (dados brutos)
     # =========================
+    remover_tabela_se_existir(f"{dominio}_raw", f"{nome_tabela}_raw")
     df.to_sql(
         f"{nome_tabela}_raw",
         engine,
@@ -71,6 +76,7 @@ def carregar_e_processar(nome_arquivo, dominio, nome_tabela):
         .str.replace(r"[^\w]+", "_", regex=True)
     )
 
+    remover_tabela_se_existir(f"{dominio}_trusted", f"{nome_tabela}_trusted")
     df_tratado.to_sql(
         f"{nome_tabela}_trusted",
         engine,
@@ -87,6 +93,7 @@ def carregar_e_processar(nome_arquivo, dominio, nome_tabela):
 
     df_analise = df_analise.dropna(how="all")
     
+    remover_tabela_se_existir(f"{dominio}_analytics", f"{nome_tabela}_analytics")
     df_analise.to_sql(
         f"{nome_tabela}_analytics",
         engine,

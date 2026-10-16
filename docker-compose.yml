@@ -27,6 +27,100 @@ services:
     volumes:
       - pgadmin_data:/var/lib/pgadmin
 
+  airflow-init:
+    build:
+      context: ./airflow
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+    command: db migrate
+
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/plugins:/opt/airflow/plugins
+      - ./app:/opt/project
+
+  airflow-apiserver:
+    build:
+      context: ./airflow
+
+    restart: always
+
+    env_file:
+      - .env
+
+    depends_on:
+      - postgres
+      - airflow-init
+
+    ports:
+      - "8080:8080"
+
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/plugins:/opt/airflow/plugins
+      - ./app:/opt/project
+
+  airflow-scheduler:
+    build:
+      context: ./airflow
+
+    restart: always
+
+    env_file:
+      - .env
+
+    depends_on:
+      - postgres
+      - airflow-init
+
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/plugins:/opt/airflow/plugins
+      - ./app:/opt/project
+
+  airflow-dag-processor:
+    build:
+      context: ./airflow
+
+    restart: always
+
+    env_file:
+      - .env
+
+    depends_on:
+      - postgres
+      - airflow-init
+
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/plugins:/opt/airflow/plugins
+      - ./app:/opt/project
+
+  airflow-triggerer:
+    build:
+      context: ./airflow
+
+    restart: always
+
+    env_file:
+      - .env
+
+    depends_on:
+      - postgres
+      - airflow-init
+
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/plugins:/opt/airflow/plugins
+      - ./app:/opt/project
+
 volumes:
   postgres_data:
   pgadmin_data:
